@@ -1,0 +1,39 @@
+Book
+The Secret Garden
+978-0140367492
+Frances Hodgson Burnett
+250
+12
+1002
+
+Pen
+0.7
+Black
+2
+2002
+
+Brownies
+Peanut Butter Swirl
+23.2
+8
+3002
+
+Book
+To Kill a Mockingbird
+978-0061120084
+Harper Lee
+336
+10
+1003
+
+Pen
+0.4
+Red
+2
+2003
+
+Brownies
+Fudge Walnut
+22.1
+6
+3003

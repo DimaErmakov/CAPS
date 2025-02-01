@@ -1,0 +1,40 @@
+Title: The Secret Garden
+ISBN: 978-0140367492
+Price: 12
+InventoryID: 1002
+
+
+Pen
+Width: 0.700000
+Ink color: Black
+Price: 2
+InventoryID: 2002
+
+
+Brownies
+Flavor: Peanut Butter Swirl
+Size: 23.200000
+Price: 8
+InventoryID: 3002
+
+
+Title: To Kill a Mockingbird
+ISBN: 978-0061120084
+Price: 10
+InventoryID: 1003
+
+
+Pen
+Width: 0.400000
+Ink color: Red
+Price: 2
+InventoryID: 2003
+
+
+Brownies
+Flavor: Fudge Walnut
+Size: 22.100000
+Price: 6
+InventoryID: 3003
+
+
