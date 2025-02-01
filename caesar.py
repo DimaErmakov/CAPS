@@ -34,8 +34,8 @@ def caesar_cipher_decrypt(ciphertext):
             max_word_count = word_count
             best_shift = shift
             best_decrypted_text = decrypted_text
-
-        print(f"Shift {shift}: {decrypted_text} (Valid Words: {word_count})")
+        if word_count > 0:
+            print(f"Shift {shift}: {decrypted_text} (Valid Words: {word_count})")
 
     # Output the best result
     print(f"\nBest Shift: {best_shift}")
