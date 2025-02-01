@@ -61,7 +61,9 @@ def extract_message_from_image(image_path: str) -> str:
 
 if __name__ == "__main__":
     # Insert the message into the image
-    insert_message_into_image("pic.png", "Opps I left something here", "pic_stego.png")
+    insert_message_into_image(
+        "pic.png", "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "pic_stego.png"
+    )
 
     # Extract the message from the modified image
     extracted_message = extract_message_from_image("pic_stego.png")
