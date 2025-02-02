@@ -71,7 +71,7 @@ def solve_substitution_cipher(encrypted_text, valid_words):
     sorted_encrypted_freq = sorted(encrypted_freq.items(), key=lambda x: -x[1])
 
     # Frequency of letters in English (from The Brothers Karamazov and The Iliad)
-    english_freq = [  # Rocognized words from the text by manually looking
+    english_freq = [  # Rocognized words from the text by manually looking after seeing DISCIPLINE from letter freqency
         "E",
         "T",
         "A",
@@ -192,6 +192,8 @@ def main():
     print(f"\nFinal Decrypted Message: {best_decrypted_message}")
     print(f"Final Weighted Score: {best_score}")
 
+
+# Final Decrypted Message: THESOULTHATISALTOGETHERCOURAGEOUSANDGREATISMARKEDABOVEALLBYTWOCHARACTERISTICSONEOFTHESEISINDIFFERENCETOOUTWARDCIRCUMSTANCESFORSUCHAPERSONCHERISHESTHECONVICTIONTHATNOTHINGBUTMORALGOODNESSANDPROPRIETYDESERVESTOBEEITHERADMIREDORWISHEDFORORSTRIVENAFTERANDTHATHEOUGHTNOTTOBESUBJECTTOANYMANORANYPASSIONORANYACCIDENTOFFORTUNETHESECONDCHARACTERISTICISTHATWHENTHESOULISDISCIPLINEDINTHEWAYABOVEMENTIONEDONESHOULDDODEEDSNOTONLYGREATANDINTHEHIGHESTDEGREEUSEFULBUTEXTREMELYARDUOUSANDLABORIOUSANDFRAUGHTWITHDANGERBOTHTOLIFEANDTOMANYTHINGSTHATMAKELIFEWORTHLIVING
 
 if __name__ == "__main__":
     main()
