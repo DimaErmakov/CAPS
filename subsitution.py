@@ -1,6 +1,28 @@
 import time
 from collections import Counter
 
+# Known pairings
+known_pairings = {
+    "I": "A",
+    "K": "C",
+    "A": "F",
+    "B": "S",
+    "O": "P",
+    "T": "I",
+    "D": "E",
+    "N": "D",
+    "P": "L",
+    "Y": "N",
+    "V": "G",
+    "F": "T",
+    "R": "O",
+    "E": "V",
+    "L": "H",
+    "X": "M",
+    "C": "B",
+    "S": "X",
+}
+
 
 # Load the words.txt file into a set of valid words
 def load_valid_words(file_path):
@@ -11,41 +33,45 @@ def load_valid_words(file_path):
 
 # Decrypt the message using the substitution cipher mapping
 def decrypt_message(ciphertext, mapping):
-    plaintext = []
-    for char in ciphertext:
-        if char in mapping:
-            plaintext.append(mapping[char])
-        else:
-            plaintext.append("?")  # Unknown character
-    return "".join(plaintext)
+    return "".join(mapping.get(char, "?") for char in ciphertext)
 
 
-# Count the number of valid words in the decrypted message
+# Count the number of valid words in the decrypted message with weighted scoring
 def count_valid_words(decrypted_text, valid_words):
     word_count = 0
     words = []
-    for word_length in range(3, 11):  # Adjust range based on expected word lengths
+    unique_words = set()
+    weighted_score = 0
+
+    for word_length in range(3, 16):  # Adjust range based on expected word lengths
         for i in range(0, len(decrypted_text) - word_length + 1):
             word = decrypted_text[i : i + word_length]
             if word in valid_words:
                 words.append(word)
                 word_count += 1
 
-    return word_count, words
+                # Calculate weighted score
+                length_bonus = max(
+                    0, word_length - 3
+                )  # +1 point for each character beyond 3
+                uniqueness_bonus = (
+                    2 if word not in unique_words else 0
+                )  # +2 points for new words
+                weighted_score += 1 + length_bonus + uniqueness_bonus
+
+                unique_words.add(word)
+
+    return weighted_score, words
 
 
 # Branch and bound solver for substitution cipher
-def solve_substitution_cipher(
-    encrypted_text, known_ciphertext, known_plaintext, valid_words
-):
+def solve_substitution_cipher(encrypted_text, valid_words):
     # Frequency analysis of the encrypted text
     encrypted_freq = Counter(encrypted_text)
-    sorted_encrypted_freq = sorted(
-        encrypted_freq.items(), key=lambda x: x[1], reverse=True
-    )
+    sorted_encrypted_freq = sorted(encrypted_freq.items(), key=lambda x: -x[1])
 
     # Frequency of letters in English (from The Brothers Karamazov and The Iliad)
-    english_freq = [
+    english_freq = [  # Rocognized words from the text by manually looking
         "E",
         "T",
         "A",
@@ -74,15 +100,13 @@ def solve_substitution_cipher(
         "Z",
     ]
 
-    # Initialize the mapping with known plaintext
-    cipher_to_plain = {}
-    for c, p in zip(known_ciphertext, known_plaintext):
-        cipher_to_plain[c] = p
+    # Initialize the mapping with known pairings
+    cipher_to_plain = known_pairings.copy()
 
     # Initialize the best solution
     best_mapping = cipher_to_plain.copy()
     best_decrypted_message = decrypt_message(encrypted_text, best_mapping)
-    best_word_count, _ = count_valid_words(best_decrypted_message, valid_words)
+    best_score, _ = count_valid_words(best_decrypted_message, valid_words)
 
     # Track progress
     total_mappings = 1
@@ -93,20 +117,20 @@ def solve_substitution_cipher(
 
     # Recursive function to explore mappings
     def explore_mappings(mapping, remaining_cipher_chars, remaining_plain_chars):
-        nonlocal best_mapping, best_decrypted_message, best_word_count, explored_mappings
+        nonlocal best_mapping, best_decrypted_message, best_score, explored_mappings
 
         # If no more characters to map, evaluate the current mapping
         if not remaining_cipher_chars:
             decrypted_message = decrypt_message(encrypted_text, mapping)
-            word_count, words = count_valid_words(decrypted_message, valid_words)
+            weighted_score, words = count_valid_words(decrypted_message, valid_words)
 
             # Update the best solution if the current one is better
-            if word_count > best_word_count:
+            if weighted_score > best_score:
                 print(words)
                 best_mapping = mapping.copy()
                 best_decrypted_message = decrypted_message
-                best_word_count = word_count
-                print(f"New Best: {best_word_count} words")
+                best_score = weighted_score
+                print(f"New Best: {best_score} weighted score")
                 print(f"Decrypted Message: {best_decrypted_message}")
             return
 
@@ -122,14 +146,12 @@ def solve_substitution_cipher(
             # Decrypt the message with the new mapping
             decrypted_message = decrypt_message(encrypted_text, new_mapping)
 
-            # Count the number of valid words
-            word_count, _ = count_valid_words(decrypted_message, valid_words)
+            # Calculate the weighted score
+            weighted_score, _ = count_valid_words(decrypted_message, valid_words)
 
             # Prune the branch if it cannot possibly beat the current best
-            max_possible_words = (
-                word_count + len(remaining_cipher_chars) // 5
-            )  # Adjust based on average word length
-            if max_possible_words <= best_word_count:
+            max_possible_score = weighted_score + len(remaining_cipher_chars) * 4
+            if max_possible_score <= best_score:
                 continue
 
             # Recur with the new mapping and remaining characters
@@ -138,19 +160,6 @@ def solve_substitution_cipher(
                 remaining_cipher_chars[1:],
                 [p for p in remaining_plain_chars if p != plain_char],
             )
-
-            # # Update progress
-            # explored_mappings += 1
-            # if explored_mappings % 1000 == 0:  # Print progress every 1000 mappings
-            #     elapsed_time = time.time() - start_time
-            #     progress = explored_mappings / total_mappings
-            #     estimated_total_time = (
-            #         elapsed_time / progress if progress > 0 else float("inf")
-            #     )
-            #     remaining_time = estimated_total_time - elapsed_time
-            #     print(
-            #         f"Progress: {progress * 100:.2f}% | Estimated Remaining Time: {remaining_time / 3600:.2f} hours"
-            #     )
 
     # Start exploring mappings
     remaining_cipher_chars = [
@@ -161,7 +170,7 @@ def solve_substitution_cipher(
     ]
     explore_mappings(cipher_to_plain, remaining_cipher_chars, remaining_plain_chars)
 
-    return best_mapping, best_decrypted_message, best_word_count
+    return best_mapping, best_decrypted_message, best_score
 
 
 # Main function
@@ -169,25 +178,20 @@ def main():
     # Encrypted text
     encrypted_text = "FLDBRQPFLIFTBIPFRVDFLDGKRQGIVDRQBIYNVGDIFTBXIGUDNICREDIPPCMFWRKLIGIKFDGTBFTKBRYDRAFLDBDTBTYNTAADGDYKDFRRQFWIGNKTGKQXBFIYKDBARGBQKLIODGBRYKLDGTBLDBFLDKRYETKFTRYFLIFYRFLTYVCQFXRGIPVRRNYDBBIYNOGROGTDFMNDBDGEDBFRCDDTFLDGINXTGDNRGWTBLDNARGRGBFGTEDYIAFDGIYNFLIFLDRQVLFYRFFRCDBQCJDKFFRIYMXIYRGIYMOIBBTRYRGIYMIKKTNDYFRAARGFQYDFLDBDKRYNKLIGIKFDGTBFTKTBFLIFWLDYFLDBRQPTBNTBKTOPTYDNTYFLDWIMICREDXDYFTRYDNRYDBLRQPNNRNDDNBYRFRYPMVGDIFIYNTYFLDLTVLDBFNDVGDDQBDAQPCQFDSFGDXDPMIGNQRQBIYNPICRGTRQBIYNAGIQVLFWTFLNIYVDGCRFLFRPTADIYNFRXIYMFLTYVBFLIFXIUDPTADWRGFLPTETYV"
 
-    # Known plaintext ending
-    known_plaintext = "LIVING"
-    known_ciphertext = encrypted_text[-len(known_plaintext) :]
-
     # Load valid words from words.txt
     valid_words = load_valid_words("words.txt")
 
     # Solve the substitution cipher
-    best_mapping, best_decrypted_message, best_word_count = solve_substitution_cipher(
-        encrypted_text, known_ciphertext, known_plaintext, valid_words
+    best_mapping, best_decrypted_message, best_score = solve_substitution_cipher(
+        encrypted_text, valid_words
     )
 
     # Output the final results
     print("\nFinal Best Mapping:")
     print(best_mapping)
     print(f"\nFinal Decrypted Message: {best_decrypted_message}")
-    print(f"Final Number of Valid Words Found: {best_word_count}")
+    print(f"Final Weighted Score: {best_score}")
 
 
-# Run the main function
 if __name__ == "__main__":
     main()
