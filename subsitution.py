@@ -1,26 +1,26 @@
 import time
 from collections import Counter
 
-# Known pairings
+# Known pairings, from LIVING and recognized words from the text
 known_pairings = {
-    "I": "A",
-    "K": "C",
-    "A": "F",
-    "B": "S",
-    "O": "P",
-    "T": "I",
-    "D": "E",
-    "N": "D",
     "P": "L",
+    "T": "I",
+    "E": "V",
     "Y": "N",
     "V": "G",
+    "K": "C",
+    "I": "A",
+    "B": "S",
+    "D": "E",
+    "N": "D",
     "F": "T",
     "R": "O",
-    "E": "V",
     "L": "H",
-    "X": "M",
-    "C": "B",
-    "S": "X",
+    # "A": "F",
+    # "O": "P",
+    # "X": "M",
+    # "C": "B",
+    # "S": "X",
 }
 
 
@@ -194,6 +194,8 @@ def main():
 
 
 # Final Decrypted Message: THESOULTHATISALTOGETHERCOURAGEOUSANDGREATISMARKEDABOVEALLBYTWOCHARACTERISTICSONEOFTHESEISINDIFFERENCETOOUTWARDCIRCUMSTANCESFORSUCHAPERSONCHERISHESTHECONVICTIONTHATNOTHINGBUTMORALGOODNESSANDPROPRIETYDESERVESTOBEEITHERADMIREDORWISHEDFORORSTRIVENAFTERANDTHATHEOUGHTNOTTOBESUBJECTTOANYMANORANYPASSIONORANYACCIDENTOFFORTUNETHESECONDCHARACTERISTICISTHATWHENTHESOULISDISCIPLINEDINTHEWAYABOVEMENTIONEDONESHOULDDODEEDSNOTONLYGREATANDINTHEHIGHESTDEGREEUSEFULBUTEXTREMELYARDUOUSANDLABORIOUSANDFRAUGHTWITHDANGERBOTHTOLIFEANDTOMANYTHINGSTHATMAKELIFEWORTHLIVING
+# Ran the code, recognized discipline and accident, hard coded those letters, kept rerunning the code, manually recognizing more words until the message was decrypted
+
 
 if __name__ == "__main__":
     main()
