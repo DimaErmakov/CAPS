@@ -2,7 +2,6 @@ def caesar_cipher_decrypt(ciphertext):
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     ciphertext = ciphertext.upper()
 
-    # Load a list of valid English words from SCOWL
     with open("words.txt", "r") as file:
         valid_words = set(word.strip().upper() for word in file.readlines())
 
@@ -37,12 +36,13 @@ def caesar_cipher_decrypt(ciphertext):
         if word_count > 0:
             print(f"Shift {shift}: {decrypted_text} (Valid Words: {word_count})")
 
-    # Output the best result
     print(f"\nBest Shift: {best_shift}")
     print(f"Decrypted Text: {best_decrypted_text}")
     print(f"Valid Words Found: {max_word_count}")
 
 
-# Example usage
 encrypted_message = "EUAIGTZKRRGSGTYBOIKYHENOYLXOKTJYNOYBOXZAKYHENOYKTKSOKY"
 caesar_cipher_decrypt(encrypted_message)
+# Explaination:
+# Pretty simple, I simply tried every combination and then counted the number of valid words in the decrypted text.
+# Decrypted Text: YOUCANTELLAMANSVICESBYHISFRIENDSHISVIRTUESBYHISENEMIES

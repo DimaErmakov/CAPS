@@ -5,7 +5,6 @@ from numpy.typing import NDArray
 
 # Insert message into the image
 def insert_message_into_image(image_path: str, message: str, output_path: str) -> None:
-    # Read the image
     image = cv2.imread(image_path)
     if image is None:
         raise ValueError("Image not found or could not be read.")
@@ -18,11 +17,7 @@ def insert_message_into_image(image_path: str, message: str, output_path: str) -
     data = image.copy()
     data = data.reshape(-1)
 
-    # Check if the message can fit in the image
-    if len(binary_message) > len(data):
-        raise ValueError("Message is too long to be embedded in the image.")
-
-    # Embed the message in the LSB of the blue channel
+    # Embed the message in the LSB of blue channel
     for i in range(len(binary_message)):
         data[i] = (data[i] & ~1) | int(binary_message[i])  # Modify LSB
 
@@ -35,10 +30,7 @@ def insert_message_into_image(image_path: str, message: str, output_path: str) -
 
 # Extract message from the image
 def extract_message_from_image(image_path: str) -> str:
-    # Read the image
     image = cv2.imread(image_path)
-    if image is None:
-        raise ValueError("Image not found or could not be read.")
 
     # Flatten the image array
     data = image.reshape(-1)
@@ -68,3 +60,5 @@ if __name__ == "__main__":
     # Extract the message from the modified image
     extracted_message = extract_message_from_image("pic_stego.png")
     print("Extracted Message:", extracted_message)
+# Explaination:
+# converted message to binary, Embed the message, and then extracted it back.

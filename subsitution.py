@@ -8,6 +8,7 @@ known_pairings = {
     "E": "V",
     "Y": "N",
     "V": "G",
+    # LIVING
     "K": "C",
     "I": "A",
     "B": "S",
@@ -16,24 +17,31 @@ known_pairings = {
     "F": "T",
     "R": "O",
     "L": "H",
-    # "A": "F",
-    # "O": "P",
-    # "X": "M",
-    # "C": "B",
-    # "S": "X",
+    "A": "F",
+    "O": "P",
+    "X": "M",
+    "C": "B",
+    "G": "R",
+    "S": "X",
 }
 
 
-# Load the words.txt file into a set of valid words
 def load_valid_words(file_path):
     with open(file_path, "r") as file:
         valid_words = set(word.strip().upper() for word in file.readlines())
+
+    # import spacy
+    # nlp = spacy.load("en_core_web_sm")
+    # all_words = set(nlp.vocab.strings)
+    # valid_words = all_words  # Initialize valid_words with all_words
+    # valid_words = valid_words.intersection(all_words)
+    # valid_words = sorted(valid_words, key=len)
     return valid_words
 
 
 # Decrypt the message using the substitution cipher mapping
 def decrypt_message(ciphertext, mapping):
-    return "".join(mapping.get(char, "?") for char in ciphertext)
+    return "".join(mapping.get(char, " ") for char in ciphertext)
 
 
 # Count the number of valid words in the decrypted message with weighted scoring
@@ -70,8 +78,7 @@ def solve_substitution_cipher(encrypted_text, valid_words):
     encrypted_freq = Counter(encrypted_text)
     sorted_encrypted_freq = sorted(encrypted_freq.items(), key=lambda x: -x[1])
 
-    # Frequency of letters in English (from The Brothers Karamazov and The Iliad)
-    english_freq = [  # Rocognized words from the text by manually looking after seeing DISCIPLINE from letter freqency
+    english_freq = [
         "E",
         "T",
         "A",
@@ -108,16 +115,9 @@ def solve_substitution_cipher(encrypted_text, valid_words):
     best_decrypted_message = decrypt_message(encrypted_text, best_mapping)
     best_score, _ = count_valid_words(best_decrypted_message, valid_words)
 
-    # Track progress
-    total_mappings = 1
-    for i in range(len(english_freq) - len(cipher_to_plain), 0, -1):
-        total_mappings *= i
-    explored_mappings = 0
-    start_time = time.time()
-
     # Recursive function to explore mappings
     def explore_mappings(mapping, remaining_cipher_chars, remaining_plain_chars):
-        nonlocal best_mapping, best_decrypted_message, best_score, explored_mappings
+        nonlocal best_mapping, best_decrypted_message, best_score
 
         # If no more characters to map, evaluate the current mapping
         if not remaining_cipher_chars:
@@ -126,7 +126,7 @@ def solve_substitution_cipher(encrypted_text, valid_words):
 
             # Update the best solution if the current one is better
             if weighted_score > best_score:
-                print(words)
+                print(f"Words found: {words}")
                 best_mapping = mapping.copy()
                 best_decrypted_message = decrypted_message
                 best_score = weighted_score
@@ -150,7 +150,7 @@ def solve_substitution_cipher(encrypted_text, valid_words):
             weighted_score, _ = count_valid_words(decrypted_message, valid_words)
 
             # Prune the branch if it cannot possibly beat the current best
-            max_possible_score = weighted_score + len(remaining_cipher_chars) * 4
+            max_possible_score = weighted_score + len(remaining_cipher_chars) * 5
             if max_possible_score <= best_score:
                 continue
 
@@ -173,28 +173,33 @@ def solve_substitution_cipher(encrypted_text, valid_words):
     return best_mapping, best_decrypted_message, best_score
 
 
-# Main function
 def main():
-    # Encrypted text
     encrypted_text = "FLDBRQPFLIFTBIPFRVDFLDGKRQGIVDRQBIYNVGDIFTBXIGUDNICREDIPPCMFWRKLIGIKFDGTBFTKBRYDRAFLDBDTBTYNTAADGDYKDFRRQFWIGNKTGKQXBFIYKDBARGBQKLIODGBRYKLDGTBLDBFLDKRYETKFTRYFLIFYRFLTYVCQFXRGIPVRRNYDBBIYNOGROGTDFMNDBDGEDBFRCDDTFLDGINXTGDNRGWTBLDNARGRGBFGTEDYIAFDGIYNFLIFLDRQVLFYRFFRCDBQCJDKFFRIYMXIYRGIYMOIBBTRYRGIYMIKKTNDYFRAARGFQYDFLDBDKRYNKLIGIKFDGTBFTKTBFLIFWLDYFLDBRQPTBNTBKTOPTYDNTYFLDWIMICREDXDYFTRYDNRYDBLRQPNNRNDDNBYRFRYPMVGDIFIYNTYFLDLTVLDBFNDVGDDQBDAQPCQFDSFGDXDPMIGNQRQBIYNPICRGTRQBIYNAGIQVLFWTFLNIYVDGCRFLFRPTADIYNFRXIYMFLTYVBFLIFXIUDPTADWRGFLPTETYV"
 
-    # Load valid words from words.txt
     valid_words = load_valid_words("words.txt")
 
-    # Solve the substitution cipher
     best_mapping, best_decrypted_message, best_score = solve_substitution_cipher(
         encrypted_text, valid_words
     )
 
-    # Output the final results
     print("\nFinal Best Mapping:")
     print(best_mapping)
     print(f"\nFinal Decrypted Message: {best_decrypted_message}")
     print(f"Final Weighted Score: {best_score}")
 
 
+# Explaination:
+
 # Final Decrypted Message: THESOULTHATISALTOGETHERCOURAGEOUSANDGREATISMARKEDABOVEALLBYTWOCHARACTERISTICSONEOFTHESEISINDIFFERENCETOOUTWARDCIRCUMSTANCESFORSUCHAPERSONCHERISHESTHECONVICTIONTHATNOTHINGBUTMORALGOODNESSANDPROPRIETYDESERVESTOBEEITHERADMIREDORWISHEDFORORSTRIVENAFTERANDTHATHEOUGHTNOTTOBESUBJECTTOANYMANORANYPASSIONORANYACCIDENTOFFORTUNETHESECONDCHARACTERISTICISTHATWHENTHESOULISDISCIPLINEDINTHEWAYABOVEMENTIONEDONESHOULDDODEEDSNOTONLYGREATANDINTHEHIGHESTDEGREEUSEFULBUTEXTREMELYARDUOUSANDLABORIOUSANDFRAUGHTWITHDANGERBOTHTOLIFEANDTOMANYTHINGSTHATMAKELIFEWORTHLIVING
-# Ran the code, recognized discipline and accident, hard coded those letters, kept rerunning the code, manually recognizing more words until the message was decrypted
+# After I ran the code, I personally recognized through sight the words discipline and accident in the current best attempt
+# I hard coded the mapping for the letters matching up to discipline and accident
+# I kept rerunning the code, finding more words through sight like conviction, until the message was decrypted
+# the biggest issue I had was having a bad word bank. My word bank was only the most first 1000 most common words in the english language
+# I then tired a much larger word bank, but it was way too slow and had horrible words like 'ULT', 'LTH', 'ATI', 'TIS', 'ISA', 'SAL'
+# most of the words in the answer were not in the word bank (like accident and discipline) so my code had a hard time finding the answer
+# overall, I think the code is pretty solid, but my word bank was not good enough
+# although, it was quite fun to look at a decent current solution and visually see the words
+# if you comment out lines 12-25, you can see the current best solution and recognize words like difference, discipline, and accident
 
 
 if __name__ == "__main__":
