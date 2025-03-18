@@ -21,8 +21,8 @@ known_pairings = {
     "O": "P",
     "X": "M",
     "C": "B",
-    "G": "R",
-    "S": "X",
+    # "G": "R",
+    # "S": "X",
 }
 
 
@@ -199,7 +199,7 @@ def main():
 # most of the words in the answer were not in the word bank (like accident and discipline) so my code had a hard time finding the answer
 # overall, I think the code is pretty solid, but my word bank was not good enough
 # although, it was quite fun to look at a decent current solution and visually see the words
-# if you comment out lines 12-25, you can see the current best solution and recognize words like difference, discipline, and accident
+# if you comment out lines 12-25 and change words.py to words.txt, you can see the current best solution and recognize words like difference, discipline, and accident
 
 
 if __name__ == "__main__":

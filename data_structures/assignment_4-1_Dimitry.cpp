@@ -1,87 +1,107 @@
 #include <iostream>
+
 #include <vector>
 #include <list>
 #include <cmath>
 
-class Stack { // index 0 is the top of the stack
+class Stack
+{ // index 0 is the top of the stack
 public:
-    void push(double value) {
+    void push(double value)
+    {
         data.push_front(value);
     }
-    void pop() {
+    void pop()
+    {
         data.pop_front();
     }
-    bool is_empty() {
+    bool is_empty()
+    {
         return data.size() == 0;
     }
-    void clear() {
+    void clear()
+    {
         data.clear();
     }
-    double peek() {
+    double peek()
+    {
         return data.front();
     }
-    void print_stack() {
-        for (double value : data) {
-			std::cout << value << " ";
-		}
-		std::cout << std::endl;
-	}
+    void print_stack()
+    {
+        for (double value : data)
+        {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+    }
 
 private:
     std::list<double> data;
 };
 
-class Math {
+class Math
+{
 public:
-    void push(double value) {
+    void push(double value)
+    {
         stack.push(value);
     }
-    void pop() {
+    void pop()
+    {
         stack.pop();
     }
-    double peek() {
+    double peek()
+    {
         return stack.peek();
     }
-    void add() {
+    void add()
+    {
         double num1 = stack.peek();
         stack.pop();
         double num2 = stack.peek();
         stack.pop();
         stack.push(num1 + num2);
     }
-    void subtract() {
+    void subtract()
+    {
         double num1 = stack.peek();
         stack.pop();
         double num2 = stack.peek();
         stack.pop();
-        stack.push(std::abs(num2 - num1)); 
+        stack.push(std::abs(num2 - num1));
     }
-    void multiply() {
+    void multiply()
+    {
         double num1 = stack.peek();
         stack.pop();
         double num2 = stack.peek();
         stack.pop();
         stack.push(num1 * num2);
     }
-    void divide() {
+    void divide()
+    {
         double num1 = stack.peek();
         stack.pop();
         double num2 = stack.peek();
         stack.pop();
         double remainder = std::fmod(num2, num1);
-        if (num1 == 0) {
+        if (num1 == 0)
+        {
             std::cout << "Error: Division by zero." << std::endl;
             return;
         }
         stack.push(num2 / num1);
         stack.push(remainder);
     }
-    void sin() {
+    void sin()
+    {
         double num = std::sin(stack.peek());
         stack.pop();
         stack.push(num);
     }
-    void sincos() {
+    void sincos()
+    {
         double num = std::sin(stack.peek());
         stack.pop();
         double num2 = std::cos(stack.peek());
@@ -89,20 +109,23 @@ public:
         stack.push(num2);
         stack.push(num);
     }
-    void sqrt() {
+    void sqrt()
+    {
         double num = std::sqrt(stack.peek());
         stack.pop();
         stack.push(num);
     }
-    void print() {
+    void print()
+    {
         stack.print_stack();
-	}
-     
+    }
+
 private:
     Stack stack;
 };
 
-int main() {
+int main()
+{
     Math math;
 
     math.push(2.0);
