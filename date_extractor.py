@@ -1,0 +1,133 @@
+import pyautogui
+import pytesseract
+import re
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
+
+
+def extract_date(input_text):
+    months = {
+        "January": 1,
+        "February": 2,
+        "March": 3,
+        "April": 4,
+        "May": 5,
+        "June": 6,
+        "July": 7,
+        "August": 8,
+        "September": 9,
+        "October": 10,
+        "November": 11,
+        "December": 12,
+    }
+    day_month_year_result = day_month_year_only(input_text)
+    if day_month_year_result is not None:
+        return day_month_year_result
+    month_year_result = month_year_only(input_text, months)
+    if month_year_result is not None:
+        return month_year_result
+    year_only_result = year_only(input_text)
+    if year_only_result is not None:
+        return year_only_result
+
+    # Regular expression pattern to match different date formats.
+    date_pattern = r"\b(\d{1,2})[ /-](\d{4})\b|\b([A-Za-z]+)[ /-](\d{4})\b"
+    matches = re.findall(date_pattern, input_text)
+
+    if matches:
+        for match in matches:
+            if match[0]:  # Matched day and year (e.g., 10/2023 or 10-2023)
+                month, year = match[0], match[1]
+                return f"{month}/{year}"
+            elif match[2] in months:  # Check if the matched text is a valid month name
+                month, year = months[match[2]], match[3]
+                return f"{month}/{year}"
+
+    # Handle the case of "month YYYY"
+    month_year_pattern = r"\b([A-Za-z]+) (\d{4})\b"
+    month_year_match = re.search(month_year_pattern, input_text)
+    if month_year_match:
+        month, year = months[month_year_match.group(1)], month_year_match.group(2)
+        return f"{month:02d}/{year}"
+
+    # Handle special cases for phrases like "last month," "last year," and "this year."
+    return special_cases(input_text)
+
+
+def remove_numbers_greater_than_current_year(input_text):
+    current_year = datetime.now().year
+    # Regular expression pattern to match numbers in the input text
+    number_pattern = r"\b\d+\b"
+
+    def remove_numbers(match):
+        number = int(match.group(0))
+        if number <= current_year:
+            return str(number)
+        else:
+            return ""
+
+    return re.sub(number_pattern, remove_numbers, input_text)
+
+
+def remove_phone_numbers(text):
+    phone_pattern = (
+        r"\b(\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|\(\d{3}\)[-.\s]?\d{3}[-.\s]?\d{4})\b"
+    )
+    return re.sub(phone_pattern, "", text)
+
+
+def remove_digits_next_to_letters(input_string):
+    return re.sub(r"([a-zA-Z])\d+|\d+([a-zA-Z])", r"\1\2", input_string)
+
+
+def day_month_year_only(input_text):
+    date_pattern = r"\b(\d{1,2})[ /-](\d{1,2})[ /-](\d{4})\b"
+    matches = re.findall(date_pattern, input_text)
+    if matches:
+        for match in matches:
+            month, year = match[0], match[2]
+            if month.startswith("0"):
+                month = month[1]  # Remove leading zero
+            return f"{month}/{year}"
+    return None
+
+
+def year_only(input_text):
+    year_pattern = r"\b(\d{4})\b"
+    year_match = re.search(year_pattern, input_text)
+    if year_match:
+        year = year_match.group(1)
+        return f"1/{year}"
+    return None
+
+
+def month_year_only(input_text, months):
+    month_year_pattern = r"\b([A-Za-z]+)[ /-](\d{4})\b"
+    month_year_match = re.search(month_year_pattern, input_text)
+    if month_year_match:
+        month = months.get(month_year_match.group(1))
+        year = month_year_match.group(2)
+        if month:
+            return f"{month}/{year}"
+    return None
+
+
+def special_cases(input_text):
+    CURRENT_DATE = datetime.now()
+    formatted_month = str(CURRENT_DATE.month)
+    formatted_year = str(CURRENT_DATE.year)
+    if "last month" in input_text:
+        last_month = int(formatted_month) - 1
+        return f"{last_month}/{formatted_year}"
+
+    if "last year" in input_text:
+        last_year = int(formatted_year) - 1
+        return f"1/{last_year}"
+
+    if "this year" in input_text:
+        return f"1/{formatted_year}"
+    if "this month" in input_text:
+        return f"{formatted_month}/{formatted_year}"
+
+    return "1/"
