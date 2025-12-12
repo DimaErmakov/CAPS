@@ -1,0 +1,7 @@
+#!/bin/bash
+
+script_dir=$(dirname "$0")
+utils_dir=${script_dir}/../0-utils
+(make -j -C $utils_dir >& /dev/null) &&
+gcc -c $script_dir/shell_64_no_zeros.S &&
+$utils_dir/hex_shell2str "$($utils_dir/obj_to_hex.bsh $script_dir/shell_64_no_zeros.o)"

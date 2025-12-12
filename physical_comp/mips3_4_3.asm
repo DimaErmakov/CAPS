@@ -1,4 +1,8 @@
 # lab 3 exercise 4-3
+  .text
+    jal f              # Jump to  f, store return address in $ra
+    add $t0, $t0, $t0
+    j exit             # Jumps to exit
 f:
     add $t0, $t0, $t0  
 
@@ -15,7 +19,16 @@ f:
     addi $sp, $sp, 8   
 
     add $t0, $t0, $t0  
-    jr $ra             
+    jr $ra        
+    
+       
+g:
+    add $t0, $t0, $t0 
+    add $t0, $t0, $t0 
+    add $t0, $t0, $t0 
+    jr $ra   
+
+exit:  
     
 # (3a)
 # jal f jumps to f, storing return the address in $ra.

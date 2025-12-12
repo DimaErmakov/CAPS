@@ -1,0 +1,21 @@
+
+#!/bin/bash
+
+# FIXME:
+# 1: ls command
+# 2: y=$($x)
+# 3: ls *~
+# 4: rm *~
+# 5: ls ../
+# 6: ls data/finance* OR ls data/ | grep '^finance'
+# 7: See code
+# 8: ls -l
+# 9: chmod +x tidy.bsh
+# 10: chmod 000 tidy.bsh, my system denies me permission to use cat tidy.bsh
+ 
+
+
+mkdir -p ../data/text_docs
+
+
+mv ../data/*.txt ../data/*.TXT ../data/text_docs/

