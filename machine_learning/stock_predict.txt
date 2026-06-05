@@ -22,6 +22,7 @@ def build_dataset():
     df.columns = ["spx", "fut", "vix", "btc"]
     df = df.dropna()
 
+    # --- FEATURES (RAW) ---
     df["futures_basis"] = df["fut"] - df["spx"]
 
     df["crypto_proxy"] = df["btc"].pct_change().rolling(12).mean()
@@ -29,6 +30,7 @@ def build_dataset():
 
     df["vix_norm"] = df["vix"] / 20
 
+    # --- TARGET (log return, stable) ---
     df["target"] = np.log(df["spx"]).diff().shift(-1)
 
     df = df.dropna()
@@ -36,32 +38,13 @@ def build_dataset():
     X = df[["spx", "futures_basis", "crypto_proxy", "vix_norm"]].values
     y = df["target"].values
 
-    # normalize
+    # --- NORMALIZATION (CRITICAL FIX) ---
     X_mean = X.mean(axis=0)
     X_std = X.std(axis=0) + 1e-8
 
     X = (X - X_mean) / X_std
 
     return X, y, X_mean, X_std
-
-
-def fetch_inputs():
-
-    spx = yf.Ticker("^GSPC")
-    last_spx = spx.history(period="1d", interval="1m")["Close"].iloc[-1]
-
-    futures = yf.Ticker("ES=F")
-    futures_price = futures.history(period="1d", interval="1m")["Close"].iloc[-1]
-
-    btc = yf.Ticker("BTC-USD")
-    hist = btc.history(period="2d", interval="1h")
-    crypto_proxy = hist["Close"].iloc[-1] / hist["Close"].iloc[-24]
-
-    vix = yf.Ticker("^VIX")
-    vix_proxy = vix.history(period="1d", interval="1m")["Close"].iloc[-1]
-
-    return last_spx, futures_price, crypto_proxy, vix_proxy
-
 
 
 def train_model():
@@ -79,7 +62,7 @@ def train_model():
         nn.Linear(64, 32),
         nn.ReLU(),
         nn.Linear(32, 1),
-        nn.Tanh(),  # bound
+        nn.Tanh(),  # 🚨 IMPORTANT: bounds output
     )
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -103,6 +86,25 @@ def train_model():
 
     return model, mean, std
 
+
+def fetch_inputs():
+
+    spx = yf.Ticker("^GSPC")
+    last_spx = spx.history(period="1d", interval="1m")["Close"].iloc[-1]
+
+    futures = yf.Ticker("ES=F")
+    futures_price = futures.history(period="1d", interval="1m")["Close"].iloc[-1]
+
+    btc = yf.Ticker("BTC-USD")
+    hist = btc.history(period="2d", interval="1h")
+    crypto_proxy = hist["Close"].iloc[-1] / hist["Close"].iloc[-24]
+
+    vix = yf.Ticker("^VIX")
+    vix_proxy = vix.history(period="1d", interval="1m")["Close"].iloc[-1]
+
+    return last_spx, futures_price, crypto_proxy, vix_proxy
+
+
 def generate_forecast():
     model, mean, std = train_model()
     model.eval()
@@ -121,7 +123,7 @@ def generate_forecast():
             [[temp_price, futures_price - temp_price, crypto_proxy, vix_proxy / 20]]
         )
 
-        # normalize
+        # normalize using TRAIN stats
         raw = (raw - mean) / std
 
         input_tensor = torch.FloatTensor(raw)
@@ -129,10 +131,10 @@ def generate_forecast():
         with torch.no_grad():
             delta = model(input_tensor).item()
 
-        # clamp output
+        # clamp output (CRITICAL SAFETY LAYER)
         delta = max(min(delta, 0.002), -0.002)
 
-        temp_price *= np.exp(delta)
+        temp_price *= np.exp(delta)  # stable compounding
 
         forecast_times.append(current_time.strftime("%H:%M"))
         prices.append(round(temp_price, 2))
