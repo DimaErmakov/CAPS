@@ -1,10 +1,4 @@
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import Ridge
-from sklearn.pipeline import Pipeline
-import pandas as pd
-import io
-
-csv_data: str = """year,country,host,medals_total,GDP_billion_USD,population_million,snowfall_cm,highest_elevation_m,average_height_cm,average_weight_kg,total_events
+year,country,host,medals_total,GDP_billion_USD,population_million,snowfall_cm,highest_elevation_m,average_height_cm,average_weight_kg,total_medals_possible
 1924,United States,No,4,87,110,250,6190,169,68,16
 1924,Norway,No,17,1.2,2.4,120,2469,168,63,16
 1924,Italy,No,0,10,38.8,300,4806,166,62,16
@@ -153,79 +147,4 @@ csv_data: str = """year,country,host,medals_total,GDP_billion_USD,population_mil
 2022,Germany,No,27,4000,83,250,2962,179,81,109
 2022,China,Yes,15,17963,1412,200,8849,169,65,109
 2022,Canada,No,26,2100,38,400,5959,176,79,109
-2022,Austria,No,18,470,8.9,300,3798,174,77,109"""
-
-df: pd.DataFrame = pd.read_csv(io.StringIO(csv_data)).dropna()
-
-
-df["host"] = df["host"].map({"Yes": 1, "No": 0})
-
-total_possible_medals: int = 116 * 3
-df["total_possible_medals"] = df["total_events"] * 3
-df["medals_percentage"] = df["medals_total"] / df["total_possible_medals"]
-
-
-attributes: list[str] = [
-    "GDP_billion_USD",
-    "population_million",
-    "snowfall_cm",
-    "highest_elevation_m",
-    "host",
-    "average_height_cm",
-    "average_weight_kg",
-]
-target: str = "medals_percentage"
-
-X: pd.DataFrame = df[attributes]
-y: pd.Series = df[target]
-
-# train_df: pd.DataFrame = df[df["year"] < 2018]
-# test_df: pd.DataFrame = df[df["year"] >= 2018]
-
-X_train: pd.DataFrame = df[attributes]
-y_train: pd.Series = df[target]
-# X_test: pd.DataFrame = test_df[attributes]
-# y_test: pd.Series = test_df[target]
-
-model: Pipeline = Pipeline(
-    [("scaler", StandardScaler()), ("regressor", Ridge(alpha=1.0))]
-)
-
-model.fit(X_train, y_train)
-
-projections_2026: dict[str, list[float | int]] = {
-    "Austria": [604.2, 9.22, 0],
-    "Canada": [2420.0, 43.1, 0],
-    "China": [20650.0, 1412.9, 0],
-    "Germany": [5328.0, 84.5, 0],
-    "Italy": [2701.0, 58.9, 1],
-    "Japan": [4463.0, 122.0, 0],
-    "Norway": [547.7, 5.67, 0],
-    "United States": [31821.0, 349.0, 0],
-}
-
-print("2026 Medal Predictions:")
-for country_name in projections_2026.keys():
-
-    latest_data: pd.Series = (
-        df[df["country"] == country_name].sort_values(by="year").iloc[-1]
-    )
-    snowfall: float = latest_data["snowfall_cm"]
-    elevation: float = latest_data["highest_elevation_m"]
-    height: float = latest_data["average_height_cm"]
-    weight: float = latest_data["average_weight_kg"]
-
-    gdp_2026, pop_2026, host_2026 = projections_2026[country_name]
-
-    X_new: pd.DataFrame = pd.DataFrame(
-        [[gdp_2026, pop_2026, snowfall, elevation, host_2026, height, weight]],
-        columns=attributes,
-    )
-
-    predicted_pct: float = float(model.predict(X_new)[0])
-    predicted_medals: int = int(round(predicted_pct * total_possible_medals))
-
-    if predicted_medals < 0:
-        predicted_medals = 0
-
-    print(f"{country_name}: {predicted_medals}")
+2022,Austria,No,18,470,8.9,300,3798,174,77,109
